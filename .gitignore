@@ -23,3 +23,11 @@ data/processed/*.csv
 # IDE
 .vscode/
 .idea/
+
+# Models
+*.pkl
+*.joblib
+models/
+
+Reports
+reports/*.csv
