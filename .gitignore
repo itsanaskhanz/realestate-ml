@@ -8,3 +8,18 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Data files (recommended)
+# data/raw/*.csv
+data/interim/*.csv
+data/processed/*.csv
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
