@@ -27,7 +27,7 @@ data/processed/*.csv
 # Models
 *.pkl
 *.joblib
-models/
+# models/
 
-Reports
+# Reports 
 reports/*.csv
