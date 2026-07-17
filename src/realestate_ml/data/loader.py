@@ -1,57 +1,56 @@
 import pandas as pd
 from pathlib import Path
-from .interfaces import CSVDataSource
-from .cleaner import DataCleaner
-from .validator import DataValidator
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 class DataLoader:
-    """Load and clean housing data"""
+    """
+    Load data from CSV files.
 
-    def __init__(self, data_dir: Path):
-        self.data_dir = data_dir
-        self.validator = DataValidator()
-        self.cleaner = DataCleaner()
+    This class handles loading raw data from the filesystem.
+    It provides basic error handling and logging for data loading operations.
+    """
 
-    def load_and_clean(self, filename: str = "data.csv") -> pd.DataFrame:
-        """Load raw data, validate, clean, and save"""
-        # Load raw data
-        source = CSVDataSource(self.data_dir / "raw" / filename)
-        df = source.load()
-        logger.info(f"Loaded {len(df)} rows")
+    def load(self, file_path: Path) -> pd.DataFrame:
+        """
+        Load data from a CSV file.
 
-        # Validate data
-        is_valid, errors = self.validator.validate(df)
-        if not is_valid:
-            logger.warning(f"Data has issues:\n" + "\n".join(errors))
+        Args:
+            file_path: Path to the CSV file to load
 
-        # Clean data
-        df = self.cleaner.clean(df)
+        Returns:
+            DataFrame containing the loaded data
 
-        # Save cleaned data
-        self._save_cleaned(df)
-        logger.info(
-            f"Saved cleaned data to {self.data_dir / 'interim' / 'data_cleaned.csv'}"
-        )
+        Raises:
+            FileNotFoundError: If the file doesn't exist
+            ValueError: If the file is empty or malformed
+        """
+        try:
+            if not file_path.exists():
+                logger.error(f"File not found: {file_path}")
+                raise FileNotFoundError(f"File not found: {file_path}")
 
-        return df
+            df = pd.read_csv(file_path)
 
-    def _save_cleaned(self, df=pd.DataFrame):
-        """Save cleaned data to interim folder"""
-        interim_dir = self.data_dir / "interim"
-        interim_dir.mkdir(parents=True, exist_ok=True)
-        df.to_csv(interim_dir / "data_cleaned.csv", index=False)
-        logger.info(f"Saved cleaned data to {interim_dir / 'data_cleaned.csv'}")
+            if df.empty:
+                logger.warning(f"File is empty: {file_path}")
+                raise ValueError(f"File is empty: {file_path}")
 
-    def load_cleaned(self):
-        """Load previously cleaned data"""
-        filepath = self.data_dir / "interim" / "data_cleaned.csv"
-        if not filepath.exists():
-            raise FileNotFoundError(
-                f"Cleaned data not found. Run load_and_clean() first."
+            logger.info(
+                f"Loaded {len(df)} rows, {len(df.columns)} columns from {file_path.name}"
             )
+            return df
 
-        return pd.read_csv(filepath)
+        except pd.errors.EmptyDataError:
+            logger.error(f"Empty CSV file: {file_path}")
+            raise ValueError(f"File is empty: {file_path}")
+
+        except pd.errors.ParserError as e:
+            logger.error(f"CSV parsing error in {file_path}: {e}")
+            raise ValueError(f"Invalid CSV format: {e}")
+
+        except Exception as e:
+            logger.error(f"Unexpected error loading {file_path}: {e}")
+            raise

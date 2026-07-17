@@ -5,79 +5,111 @@ logger = logging.getLogger(__name__)
 
 
 class DataCleaner:
-    """Clean housing data"""
+    """
+    Clean and preprocess data.
+
+    This class handles:
+    - Removing invalid values (price, bedrooms, bathrooms <= 0)
+    - Capping outliers using IQR method
+    - Fixing data types
+    """
+
+    OUTLIER_COLUMNS = ["price", "sqft_living", "sqft_lot", "sqft_above"]
+    POSITIVE_COLUMNS = ["price", "bathrooms", "bedrooms"]
 
     def __init__(self, iqr_multiplier: float = 1.5):
-        self.iqr_multiplier = iqr_multiplier  # For outlier detection
-        self.stats = {}  # Track cleaning statistics
+        """
+        Initialize DataCleaner.
+
+        Args:
+            iqr_multiplier: Multiplier for IQR outlier detection (default: 1.5)
+        """
+        self.iqr_multiplier = iqr_multiplier
+        self.stats = {}
 
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Main cleaning pipeline"""
+        """
+        Run complete cleaning pipeline.
+
+        Args:
+            df: Raw DataFrame to clean
+
+        Returns:
+            Cleaned DataFrame
+        """
         df = df.copy()
         initial_rows = len(df)
 
-        # Remove invalid records
         df = self._remove_invalid(df)
-        after_invalid = len(df)
-
-        # Cap outliers
         df = self._cap_outliers(df)
-
-        # Fix data types
         df = self._fix_dtypes(df)
 
-        # Store statistics
+        final_rows = len(df)
+        removed = initial_rows - final_rows
+
         self.stats = {
             "initial_rows": initial_rows,
-            "after_invalid_removal": after_invalid,
-            "removed_rows": initial_rows - after_invalid,
-            "final_rows": len(df),
+            "final_rows": final_rows,
+            "removed_rows": removed,
         }
-        logger.info(f"Cleaned: {initial_rows} -> {len(df)} rows")
+
+        if removed > 0:
+            logger.info(
+                f"Cleaning complete: {initial_rows} -> {final_rows} rows (removed {removed})"
+            )
+        else:
+            logger.info(f"Cleaning complete: {initial_rows} rows (no rows removed)")
+
         return df
 
     def _remove_invalid(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Remove rows with invalid values"""
-        df = df[df["price"] > 0]
-        df = df[df["bathrooms"] > 0]
-        df = df[df["bedrooms"] > 0]
+        """Remove rows with invalid values (<= 0)."""
+        before = len(df)
+
+        for col in self.POSITIVE_COLUMNS:
+            if col in df.columns:
+                df = df[df[col] > 0]
+
+        removed = before - len(df)
+        if removed > 0:
+            logger.info(f"Removed {removed} rows with invalid values")
+
         return df
 
     def _cap_outliers(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Cap outliers using IQR method"""
-        outliers_col = [
-            "price",
-            "sqft_living",
-            "sqft_lot",
-            "sqft_above",
-        ]
-        for col in outliers_col:
+        """Cap outliers using IQR method."""
+        for col in self.OUTLIER_COLUMNS:
             if col not in df.columns:
                 continue
-            # Calculate IQR bounds
+
             q1 = df[col].quantile(0.25)
             q3 = df[col].quantile(0.75)
-            IQR = q3 - q1
-            lower_bound = q1 - (self.iqr_multiplier * IQR)
-            upper_bound = q3 + (self.iqr_multiplier * IQR)
+            iqr = q3 - q1
 
-            # Cap values
-            df[col] = df[col].clip(lower_bound, upper_bound)
+            lower = q1 - (self.iqr_multiplier * iqr)
+            upper = q3 + (self.iqr_multiplier * iqr)
+
+            outliers = ((df[col] < lower) | (df[col] > upper)).sum()
+
+            df[col] = df[col].clip(lower, upper)
+
+            if outliers > 0:
+                logger.info(f"Capped {outliers} outliers in {col}")
+
         return df
 
     def _fix_dtypes(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Fix data types"""
-        # Convert numeric columns
+        """Fix data types for numeric and date columns."""
         numeric_cols = df.select_dtypes(include=["int64", "float64"]).columns
         for col in numeric_cols:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        # Convert date column
         if "date" in df.columns:
             df["date"] = pd.to_datetime(df["date"])
+            logger.info("Converted date column to datetime")
 
         return df
 
-    def get_stats(self):
-        """Return cleaning statistics"""
+    def get_stats(self) -> dict:
+        """Return cleaning statistics."""
         return self.stats

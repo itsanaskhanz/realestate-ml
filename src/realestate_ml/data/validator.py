@@ -1,64 +1,77 @@
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class DataValidator:
-    """Validates housing data"""
+    """
+    Validate data quality and integrity.
 
-    def validate(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Check data quality and return validation results"""
+    This class checks for:
+    - Required columns exist
+    - No invalid values (<= 0) in critical columns
+    - No missing values
+    """
 
-        # Required columns for housing data
-        required = [
-            "date",
-            "price",
-            "bedrooms",
-            "bathrooms",
-            "sqft_living",
-            "sqft_lot",
-            "floors",
-            "waterfront",
-            "view",
-            "condition",
-            "sqft_above",
-            "sqft_basement",
-            "yr_built",
-            "yr_renovated",
-            "street",
-            "city",
-            "statezip",
-            "country",
-        ]
+    REQUIRED_COLUMNS = [
+        "date",
+        "price",
+        "bedrooms",
+        "bathrooms",
+        "sqft_living",
+        "sqft_lot",
+        "floors",
+        "waterfront",
+        "view",
+        "condition",
+        "sqft_above",
+        "sqft_basement",
+        "yr_built",
+        "yr_renovated",
+        "street",
+        "city",
+        "statezip",
+        "country",
+    ]
 
-        # Check for missing columns
-        missing = [col for col in required if col not in df.columns]
+    POSITIVE_COLUMNS = ["price", "bedrooms", "bathrooms", "sqft_living"]
+
+    def validate(self, df: pd.DataFrame) -> tuple:
+        """
+        Validate data quality.
+
+        Args:
+            df: DataFrame to validate
+
+        Returns:
+            Tuple of (is_valid: bool, errors: list)
+
+        Raises:
+            ValueError: If required columns are missing
+        """
         errors = []
 
+        missing = [col for col in self.REQUIRED_COLUMNS if col not in df.columns]
         if missing:
+            logger.error(f"Missing required columns: {missing}")
             raise ValueError(f"Missing columns: {', '.join(missing)}")
 
-        # Validate numeric fields
-        if (df["price"] <= 0).any():
-            errors.append(f"Found {sum(df['price'] <= 0)} rows with price <= 0")
+        for col in self.POSITIVE_COLUMNS:
+            invalid_count = (df[col] <= 0).sum()
+            if invalid_count > 0:
+                errors.append(f"{col}: {invalid_count} rows with <= 0")
+                logger.warning(f"Found {invalid_count} rows with {col} <= 0")
 
-        if (df["bedrooms"] <= 0).any():
-            errors.append(
-                f"Found {(df['bedrooms'] <= 0).sum()} rows with bedrooms <= 0"
-            )
+        null_count = df.isnull().sum().sum()
+        if null_count > 0:
+            errors.append(f"Found {null_count} missing values")
+            logger.warning(f"Found {null_count} missing values")
 
-        if (df["bathrooms"] <= 0).any():
-            errors.append(
-                f"Found {(df['bathrooms'] <= 0).sum()} rows with bathrooms <= 0"
-            )
+        is_valid = len(errors) == 0
+        if is_valid:
+            logger.info("Data validation passed ✓")
+        else:
+            logger.warning(f"Validation failed with {len(errors)} issues")
 
-        if (df["sqft_living"] <= 0).any():
-            errors.append(
-                f"Found {sum(df['sqft_living'] <= 0)} rows with sqft_living <= 0"
-            )
-
-        # Check for null values
-        total_missing = df.isnull().sum().sum()
-
-        if total_missing > 0:
-            errors.append(f"Found {total_missing} missing values")
-
-        return len(errors) == 0, errors
+        return is_valid, errors
