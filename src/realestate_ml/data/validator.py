@@ -17,22 +17,19 @@ class DataValidator:
     REQUIRED_COLUMNS = [
         "date",
         "price",
+        "sqft_living",
         "bedrooms",
         "bathrooms",
-        "sqft_living",
+        "yr_built",
+        "city",
         "sqft_lot",
         "floors",
-        "waterfront",
         "view",
         "condition",
         "sqft_above",
         "sqft_basement",
-        "yr_built",
         "yr_renovated",
-        "street",
-        "city",
-        "statezip",
-        "country",
+        "waterfront",
     ]
 
     POSITIVE_COLUMNS = ["price", "bedrooms", "bathrooms", "sqft_living"]

@@ -31,3 +31,7 @@ data/processed/*.csv
 
 # Reports 
 reports/*.csv
+
+# Logs
+logs/
+*.log
