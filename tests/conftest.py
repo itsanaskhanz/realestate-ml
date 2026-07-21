@@ -27,7 +27,7 @@ def sample_data() -> pd.DataFrame:
             "sqft_basement": [200, 0, 300, 0, 200],
             "yr_built": [2010, 2005, 2018, 1995, 2008],
             "yr_renovated": [0, 2015, 0, 0, 2020],
-            "city": ["Seattle", "Bellevue", "Redmond", "Seattle", "Kirkland"],
+            "city": ["Seattle", "Bellevue", "Redmond", "Sammamish", "Kirkland"],
         }
     )
 
@@ -106,6 +106,37 @@ def sample_data_missing() -> pd.DataFrame:
             "yr_built": [2010, 2005, 2018, 1995, 2008],
             "yr_renovated": [0, 2015, 0, 0, 2020],
             "city": ["Seattle", "Bellevue", "Redmond", "Seattle", "Kirkland"],
+        }
+    )
+
+
+@pytest.fixture
+def engineered_data():
+    """Fixture with already engineered data (22 columns)."""
+    return pd.DataFrame(
+        {
+            "price": [500000, 350000, 750000, 250000, 600000, 900000],
+            "bedrooms": [3, 2, 4, 1, 3, 5],
+            "bathrooms": [2.5, 1.5, 3.0, 1.0, 2.0, 3.5],
+            "sqft_living": [1800, 1200, 2500, 800, 1600, 3000],
+            "sqft_lot": [5000, 3500, 8000, 2000, 6000, 10000],
+            "floors": [1.5, 1.0, 2.0, 1.0, 1.0, 2.0],
+            "waterfront": [0, 0, 1, 0, 0, 0],
+            "view": [0, 1, 2, 0, 0, 3],
+            "condition": [3, 4, 5, 2, 3, 4],
+            "sqft_above": [1600, 1200, 2200, 800, 1400, 2700],
+            "sqft_basement": [200, 0, 300, 0, 200, 300],
+            "month": [1, 2, 3, 4, 5, 6],
+            "day": [15, 20, 10, 5, 12, 1],
+            "age_at_sale": [14, 21, 8, 31, 18, 11],
+            "was_renovated": [0, 1, 0, 0, 1, 0],
+            "years_since_renovation": [0, 11, 0, 0, 6, 0],
+            "total_sqft": [2000, 1200, 2800, 800, 1800, 3300],
+            "is_Seattle": [1, 0, 0, 1, 0, 0],
+            "is_Renton": [0, 0, 0, 0, 0, 1],
+            "is_Bellevue": [0, 1, 0, 0, 0, 0],
+            "is_Redmond": [0, 0, 1, 0, 0, 0],
+            "is_Kirkland": [0, 0, 0, 0, 1, 0],
         }
     )
 
