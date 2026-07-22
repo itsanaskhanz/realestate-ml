@@ -63,7 +63,7 @@ class DataCleaner:
             )
         else:
             logger.info(f"Cleaning complete: {initial_rows} rows (no rows removed)")
-        path = self.interim_path / "cleaned.csv"
+        path = self.interim_path / "data_cleaned.csv"
         path.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(path, index=False)
         return df
