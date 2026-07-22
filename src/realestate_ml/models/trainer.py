@@ -1,6 +1,9 @@
 from realestate_ml.config import CONFIG
 import pandas as pd
 from xgboost import XGBRegressor
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 class Trainer:
@@ -9,6 +12,12 @@ class Trainer:
         self.y_train = y_train
 
     def train(self):
-        model = XGBRegressor(**CONFIG["model"]["params"])
+
+        model = Pipeline(
+            [
+                ("preprocessor", StandardScaler()),
+                ("model", XGBRegressor(**CONFIG["model"]["params"])),
+            ]
+        )
         model.fit(self.X_train, self.y_train)
         return model
