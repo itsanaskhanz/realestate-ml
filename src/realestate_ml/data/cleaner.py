@@ -1,5 +1,7 @@
+from pathlib import Path
 import pandas as pd
 import logging
+from realestate_ml.config import CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +27,8 @@ class DataCleaner:
             iqr_multiplier: Multiplier for IQR outlier detection (default: 1.5)
         """
         self.iqr_multiplier = iqr_multiplier
+        self.data_config = CONFIG["data"]
+        self.interim_path = Path(self.data_config["interim_path"])
         self.stats = {}
 
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -59,7 +63,9 @@ class DataCleaner:
             )
         else:
             logger.info(f"Cleaning complete: {initial_rows} rows (no rows removed)")
-
+        path = self.interim_path / "cleaned.csv"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(path, index=False)
         return df
 
     def _remove_invalid(self, df: pd.DataFrame) -> pd.DataFrame:

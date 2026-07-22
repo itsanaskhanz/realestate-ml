@@ -8,8 +8,9 @@ from realestate_ml.config import CONFIG
 
 class DataPreprocessor:
     def __init__(self):
-        self.data_config = CONFIG["data"]
-        self.processed_path = Path(self.data_config["processed_path"])
+        self.split = CONFIG["split"]
+
+        self.processed_path = Path(CONFIG["data"]["processed_path"])
 
     def save(self, data: pd.DataFrame, filename: str) -> None:
         path = self.processed_path / filename
@@ -17,15 +18,15 @@ class DataPreprocessor:
         data.to_csv(path, index=False)
 
     def train_test_split(self, df: pd.DataFrame) -> pd.DataFrame:
-        target_col = self.data_config["target_column"]
+        target_col = self.split["target_column"]
         X = df.drop(target_col, axis=1)
         y = df[target_col]
 
         X_train, X_test, y_train, y_test = train_test_split(
             X,
             y,
-            test_size=self.data_config["test_size"],
-            random_state=self.data_config["random_state"],
+            test_size=self.split["test_size"],
+            random_state=self.split["random_state"],
         )
 
         self.save(X_train, "X_train.csv")

@@ -1,6 +1,18 @@
 data:
   raw_path: "data/raw/housing.csv"
+  interim_path: "data/interim/"
   processed_path: "data/processed/"
+
+split:
   target_column: "price"
   test_size: 0.2
   random_state: 42
+
+model:
+  name: "XGBRegressor"
+  params:
+    colsample_bytree: 0.8
+    learning_rate: 0.05
+    max_depth: 3
+    n_estimators: 200
+    subsample: 0.8
