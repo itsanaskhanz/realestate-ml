@@ -12,7 +12,7 @@ class DataPreprocessor:
 
         self.processed_path = Path(CONFIG["data"]["processed_path"])
 
-    def save(self, data: pd.DataFrame, filename: str) -> None:
+    def _save(self, data: pd.DataFrame, filename: str) -> None:
         path = self.processed_path / filename
         path.parent.mkdir(parents=True, exist_ok=True)
         data.to_csv(path, index=False)
@@ -29,9 +29,9 @@ class DataPreprocessor:
             random_state=self.split["random_state"],
         )
 
-        self.save(X_train, "X_train.csv")
-        self.save(X_test, "X_test.csv")
-        self.save(y_train, "y_train.csv")
-        self.save(y_test, "y_test.csv")
+        self._save(X_train, "X_train.csv")
+        self._save(X_test, "X_test.csv")
+        self._save(y_train, "y_train.csv")
+        self._save(y_test, "y_test.csv")
 
         return X_train, X_test, y_train, y_test
