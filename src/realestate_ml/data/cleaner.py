@@ -31,7 +31,7 @@ class DataCleaner:
         self.interim_path = Path(self.data_config["interim_path"])
         self.stats = {}
 
-    def clean(self, df: pd.DataFrame) -> pd.DataFrame:
+    def clean(self, df: pd.DataFrame, save: bool = False) -> pd.DataFrame:
         """
         Run complete cleaning pipeline.
 
@@ -63,9 +63,10 @@ class DataCleaner:
             )
         else:
             logger.info(f"Cleaning complete: {initial_rows} rows (no rows removed)")
-        path = self.interim_path / "data_cleaned.csv"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        df.to_csv(path, index=False)
+        if save:
+            path = Path(self.interim_path)
+            path.mkdir(parents=True, exist_ok=True)
+            df.to_csv(path / "data_cleaned.csv", index=False)
         return df
 
     def _remove_invalid(self, df: pd.DataFrame) -> pd.DataFrame:

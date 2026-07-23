@@ -1,4 +1,6 @@
 import pandas as pd
+from realestate_ml.config import CONFIG
+from pathlib import Path
 
 
 class FeatureEngineer:
@@ -19,7 +21,7 @@ class FeatureEngineer:
         if "date" in self.df.columns:
             self.df["date"] = pd.to_datetime(self.df["date"])
 
-    def engineer(self):
+    def engineer(self, save: bool = False):
         """
         Execute all feature engineering steps in sequence.
 
@@ -28,8 +30,15 @@ class FeatureEngineer:
         """
         self._create_date_features()
         self._create_property_features()
-        self._create_city_features()
-        return self._drop_unnecessary_columns()
+        feature_engineered_data = self._drop_unnecessary_columns()
+        if save:
+            path = Path(CONFIG["data"]["processed_path"])
+            path.mkdir(parents=True, exist_ok=True)
+            feature_engineered_data.to_csv(
+                path / "feature_engineered.csv",
+                index=False,
+            )
+        return feature_engineered_data
 
     def _create_date_features(self):
         """
@@ -59,15 +68,6 @@ class FeatureEngineer:
         )
         self.df["total_sqft"] = self.df["sqft_living"] + self.df["sqft_basement"]
 
-    def _create_city_features(self):
-        """
-        Create binary indicator features for top 5 most frequent cities.
-        Each city gets a column with 1 if property is in that city, else 0.
-        """
-        top_5_cities = self.df["city"].value_counts().head(5).index
-        for city in top_5_cities:
-            self.df[f"is_{city}"] = (self.df["city"] == city).astype(int)
-
     def _drop_unnecessary_columns(self):
         """
         Remove columns no longer needed after feature engineering.
@@ -79,7 +79,7 @@ class FeatureEngineer:
             "date",
             "year",
             "street",
-            "city",
+            # "city",
             "statezip",
             "country",
             "yr_built",
