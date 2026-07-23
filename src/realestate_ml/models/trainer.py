@@ -4,11 +4,9 @@ import joblib
 from pathlib import Path
 from xgboost import XGBRegressor
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from realestate_ml.data import DataLoader, DataCleaner, DataValidator
 from realestate_ml.features import FeatureEngineer, DataPreprocessor
 from .evaluator import Evaluator
-from sklearn.compose import ColumnTransformer
 
 
 class Trainer:
@@ -28,28 +26,15 @@ class Trainer:
         feature_engineer = FeatureEngineer(cleaned_data)
         engineered_data = feature_engineer.engineer(save=True)
 
-        preprocessor = DataPreprocessor()
-        X_train, X_test, y_train, y_test = preprocessor.train_test_split(
-            engineered_data, save=True
-        )
-        top_5_cities = X_train["city"].value_counts().head(5).index.tolist()
+        data_preprocessor = DataPreprocessor(engineered_data)
+        X_train, X_test, y_train, y_test = data_preprocessor.train_test_split(save=True)
 
-        encoder = OneHotEncoder(
-            categories=[top_5_cities], handle_unknown="ignore", sparse_output=False
-        )
-
-        numerical_columns = X_train.drop(columns=["city"]).columns
-
-        preprocessor = ColumnTransformer(
-            transformers=[
-                ("city", encoder, ["city"]),
-                ("num", StandardScaler(), numerical_columns),
-            ]
-        )
+        # Build the preprocessor
+        column_transformer = data_preprocessor.build_processor()
 
         model = Pipeline(
             [
-                ("preprocessor", preprocessor),
+                ("preprocessor", column_transformer),
                 ("model", XGBRegressor(**CONFIG["model"]["params"])),
             ]
         )
@@ -59,7 +44,7 @@ class Trainer:
         joblib.dump(model, path / "best_model.pkl")
         y_pred = model.predict(X_test)
         evaluator = Evaluator(y_test, y_pred)
-        evaluator.evaluate()
+        evaluator.evaluate(save=True)
         return model
 
 
