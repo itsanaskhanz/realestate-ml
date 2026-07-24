@@ -9,3 +9,8 @@ class TestDataPreprocessor:
         assert len(X_test) > 0
         assert len(y_train) > 0
         assert len(y_test) > 0
+
+    def test_build_processor(self, engineered_data):
+        preprocessor = DataPreprocessor(engineered_data)
+        processor = preprocessor.build_processor()
+        assert processor is not None

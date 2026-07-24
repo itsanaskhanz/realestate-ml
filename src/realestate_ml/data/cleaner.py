@@ -19,14 +19,15 @@ class DataCleaner:
     OUTLIER_COLUMNS = ["price", "sqft_living", "sqft_lot", "sqft_above"]
     POSITIVE_COLUMNS = ["price", "bathrooms", "bedrooms"]
 
-    def __init__(self, iqr_multiplier: float = 1.5):
+    def __init__(
+        self,
+    ):
         """
         Initialize DataCleaner.
 
         Args:
             iqr_multiplier: Multiplier for IQR outlier detection (default: 1.5)
         """
-        self.iqr_multiplier = iqr_multiplier
         self.data_config = CONFIG["data"]
         self.interim_path = Path(self.data_config["interim_path"])
         self.stats = {}
@@ -45,7 +46,6 @@ class DataCleaner:
         initial_rows = len(df)
 
         df = self._remove_invalid(df)
-        df = self._cap_outliers(df)
         df = self._fix_dtypes(df)
 
         final_rows = len(df)
@@ -80,28 +80,6 @@ class DataCleaner:
         removed = before - len(df)
         if removed > 0:
             logger.info(f"Removed {removed} rows with invalid values")
-
-        return df
-
-    def _cap_outliers(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Cap outliers using IQR method."""
-        for col in self.OUTLIER_COLUMNS:
-            if col not in df.columns:
-                continue
-
-            q1 = df[col].quantile(0.25)
-            q3 = df[col].quantile(0.75)
-            iqr = q3 - q1
-
-            lower = q1 - (self.iqr_multiplier * iqr)
-            upper = q3 + (self.iqr_multiplier * iqr)
-
-            outliers = ((df[col] < lower) | (df[col] > upper)).sum()
-
-            df[col] = df[col].clip(lower, upper)
-
-            if outliers > 0:
-                logger.info(f"Capped {outliers} outliers in {col}")
 
         return df
 
