@@ -21,9 +21,8 @@ class DataPreprocessor:
         encoder = OneHotEncoder(
             categories=[top_5_cities], handle_unknown="ignore", sparse_output=False
         )
-        target_col = self.split["target_column"]
 
-        numerical_columns = self.df.drop(columns=["city", target_col]).columns
+        numerical_columns = self.df.drop(columns=["city"]).columns
 
         preprocessor = ColumnTransformer(
             transformers=[
