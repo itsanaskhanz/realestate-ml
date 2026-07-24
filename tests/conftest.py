@@ -132,11 +132,14 @@ def engineered_data():
             "was_renovated": [0, 1, 0, 0, 1, 0],
             "years_since_renovation": [0, 11, 0, 0, 6, 0],
             "total_sqft": [2000, 1200, 2800, 800, 1800, 3300],
-            "is_Seattle": [1, 0, 0, 1, 0, 0],
-            "is_Renton": [0, 0, 0, 0, 0, 1],
-            "is_Bellevue": [0, 1, 0, 0, 0, 0],
-            "is_Redmond": [0, 0, 1, 0, 0, 0],
-            "is_Kirkland": [0, 0, 0, 0, 1, 0],
+            "city": [
+                "Seattle",
+                "Bellevue",
+                "Redmond",
+                "Seattle",
+                "Kirkland",
+                "Seattle",
+            ],
         }
     )
 

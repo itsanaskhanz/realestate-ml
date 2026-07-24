@@ -30,11 +30,12 @@ class Predictor:
 
         model = joblib.load(self.model_path)
 
-        # Apply feature engineering to user input
         feature_engineer = FeatureEngineer(self.user_input)
         engineered_input = feature_engineer.engineer(save=False)
 
-        # Make prediction
-        prediction = model.predict(engineered_input)
+        target_col = CONFIG["split"]["target_column"]
+        features = engineered_input.drop(columns=[target_col], errors="ignore")
+
+        prediction = model.predict(features)
 
         return float(prediction[0])  # Return as float for JSON response

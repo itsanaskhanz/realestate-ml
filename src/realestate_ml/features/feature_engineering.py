@@ -32,10 +32,10 @@ class FeatureEngineer:
         self._create_property_features()
         feature_engineered_data = self._drop_unnecessary_columns()
         if save:
-            path = Path(CONFIG["data"]["processed_path"])
+            path = Path(CONFIG["data"]["interim_path"])
             path.mkdir(parents=True, exist_ok=True)
             feature_engineered_data.to_csv(
-                path / "feature_engineered.csv",
+                path / "data_engineered.csv",
                 index=False,
             )
         return feature_engineered_data
